@@ -1,3 +1,5 @@
+import math
+
 import pygame
 
 
@@ -36,13 +38,27 @@ class Graphics:
         font = pygame.font.SysFont("Calibri", 48)
         img = font.render(str(self.bee_count[0]), True, "green")
         rect = img.get_rect()
+
         pygame.draw.rect(img, "green", rect, 1)
         self.screen.blit(img, (50, 450))
+        self.rect_nb_1 = (50, 450, 50 + rect[2], 450+rect[3])
 
         img = font.render(str(self.bee_count[1]), True, "brown")
         rect = img.get_rect()
         pygame.draw.rect(img, "brown", rect, 1)
         self.screen.blit(img, (500, 450))
+        self.rect_nb_2 = (500, 450, 500 + rect[2], 450+rect[3])
+
+    def nb_bees_click(self, x, y):
+        if self.rect_nb_1[0] <= x <= self.rect_nb_1[2]:
+            return 0
+        if self.rect_nb_1[1] <= x <= self.rect_nb_1[3]:
+            return 1
+        return -1
+
+    def graphic2coord(self, x, y):
+        return math.floor(y * len(self.board_array) / self.width), math.floor(x * len(self.board_array) / self.height)
+
 
     def coord2graphic(self, i, j):
         len_board = len(self.board_array)

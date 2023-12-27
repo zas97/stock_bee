@@ -66,6 +66,26 @@ class Board:
             return True
         return False
 
+    def evaluate(self):
+        r = 0
+        for g_f in self.flowers:
+            prev_occupier = 0
+            is_captured = True
+            for i, j in g_f:
+                if self.board_array[i][j] == 0:
+                    is_captured = False
+                    break
+                if prev_occupier != 0 and prev_occupier != self.board_array[i][j]:
+                    is_captured = False
+                    break
+                prev_occupier = self.board_array[i][j]
+            if is_captured:
+                sign = (-2*(prev_occupier - 1)+1)
+                r += len(g_f) * sign
+                # bigger values for longer
+                # r += (10**(-3-len(g_f)))
+
+        return r
     def get_points(self):
         count = [0, 0]
         sizes_g = [[], []]
@@ -111,6 +131,16 @@ class Board:
             self.pos_bees[player_num][it_bee] = to
 
         self.board_array[to[0]][to[1]] = player_num + 1
+
+    def undo(self, from_c, to, player_num, it_bee):
+        if from_c is None:
+            self.nb_bees[player_num] += 1
+            self.pos_bees[player_num].pop()
+        else:
+            self.board_array[from_c[0]][from_c[1]] = player_num + 1
+            self.pos_bees[player_num][it_bee] = from_c
+
+        self.board_array[to[0]][to[1]] = 0
 
     def paint_board(self):
         for it, flow in enumerate(self.flowers):
