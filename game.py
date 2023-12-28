@@ -25,9 +25,11 @@ class Game:
             self.board.do_move(from_c, to, p_turn, it_bee)
             p_turn = (p_turn + 1) % 2
             self.graphics.draw_board()
-            time.sleep(0.5)
-
-        print("player", 1+self.board.get_winner(), "wins")
+        winner = self.board.get_winner()
+        if winner is None:
+            print("draw")
+        else:
+            print("player", 1+self.board.get_winner(), "wins")
         print(self.board.get_points())
         while True:
             time.sleep(0.5)

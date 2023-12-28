@@ -1,7 +1,5 @@
-print(["blue"]*5)
+import numpy as np
 
-print(None == None)
 
-x= None
-
-print(x == None)
+x = np.longlong(0)
+print(x.nbytes)

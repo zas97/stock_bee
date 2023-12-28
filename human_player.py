@@ -13,6 +13,8 @@ class HumanPlayer:
         done = False
         move_from = -1
         posible_moves = self.board.get_list_posible_moves(self.player_num)
+        if len(posible_moves) == 1:
+            return posible_moves[0]
 
         while not done:
             for event in pygame.event.get():

@@ -1,12 +1,11 @@
 from typing import List, Tuple
-
+import numpy as np
 
 def pretty_print(board_array):
     for line in board_array:
         for i in line:
             print(str(i).rjust(3), end="")
         print()
-
 
 def coord2board(x, y):
     return 8 - y, x
@@ -28,6 +27,8 @@ class Board:
         self.flowers = [[coord2board(f[0], f[1]) for f in g] for g in flowers]
         self.nb_bees = [16, 16]
         self.pos_bees = [[], []]
+        self.graphics = None
+        self.nb_turns_bee_drop = 0
 
     def get_dest(self, from_c, way, d):
         coord = [from_c[0], from_c[1]]
@@ -39,17 +40,23 @@ class Board:
         return coord[0], coord[1]
 
     def get_list_posible_moves(self, player_num):
+        # skip move
+        if self.nb_bees[player_num] == 0:
+            return [(None, None, None)]
+
         list_moves = []
         ways = [-1, 1]
         directions = [0, 1]
-        if self.board_array[4][5] > 0 and self.board_array[5][4] > 0 and self.board_array[3][4] > 0 and self.board_array[4][3] > 0:
-            list_moves.append((None, (4, 4), None))
         for way in ways:
             for d in directions:
                 from_c = (4, 4)
                 to = self.get_dest(from_c, way, d)
                 if to != from_c:
                     list_moves.append((None, to, None))
+
+        if self.board_array[4][5] > 0 and self.board_array[5][4] > 0 and self.board_array[3][4] > 0 and self.board_array[4][3] > 0:
+            list_moves.append((None, (4, 4), None))
+
         for way in ways:
             for d in directions:
                 for it, from_c in enumerate(self.pos_bees[player_num]):
@@ -67,24 +74,29 @@ class Board:
         return False
 
     def evaluate(self):
+        if self.is_end():
+            winner = self.get_winner()
+            if winner == 0:
+                return 200
+            if winner == 1:
+                return -200
+            return 0
         r = 0
         for g_f in self.flowers:
-            prev_occupier = 0
-            is_captured = True
+            nb_captured = [0, 0]
             for i, j in g_f:
-                if self.board_array[i][j] == 0:
-                    is_captured = False
-                    break
-                if prev_occupier != 0 and prev_occupier != self.board_array[i][j]:
-                    is_captured = False
-                    break
-                prev_occupier = self.board_array[i][j]
-            if is_captured:
-                sign = (-2*(prev_occupier - 1)+1)
-                r += len(g_f) * sign
-                # bigger values for longer
-                # r += (10**(-3-len(g_f)))
+                if self.board_array[i][j] > 0:
+                    nb_captured[self.board_array[i][j] - 1] += 1
 
+            for p in range(2):
+                sign = (-2*p +1)
+                op_p = (p+1) % 2
+                if nb_captured[p] == len(g_f):
+                    r += len(g_f) * sign
+                    # bigger values for longer
+                    r += (10 ** (-6 + len(g_f)))
+                if nb_captured[p] == (len(g_f) - 1) and nb_captured[op_p] == 0:
+                    r += (len(g_f) - 1) / 10 * sign
         return r
     def get_points(self):
         count = [0, 0]
@@ -120,10 +132,11 @@ class Board:
                 return 1
         return None
 
-
-
     def do_move(self, from_c, to, player_num, it_bee):
-        if from_c is None:
+        if from_c is None and to is None:
+            return
+
+        elif from_c is None:
             self.nb_bees[player_num] -= 1
             self.pos_bees[player_num].append(to)
         else:
@@ -133,7 +146,10 @@ class Board:
         self.board_array[to[0]][to[1]] = player_num + 1
 
     def undo(self, from_c, to, player_num, it_bee):
-        if from_c is None:
+        if from_c is None and to is None:
+            return
+
+        elif from_c is None:
             self.nb_bees[player_num] += 1
             self.pos_bees[player_num].pop()
         else:
